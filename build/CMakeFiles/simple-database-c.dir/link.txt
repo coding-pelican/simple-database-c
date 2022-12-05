@@ -1,0 +1,3 @@
+"C:\Program Files\CMake\bin\cmake.exe" -E rm -f CMakeFiles\simple-database-c.dir/objects.a
+C:\mingw64\bin\ar.exe qc CMakeFiles\simple-database-c.dir/objects.a @CMakeFiles\simple-database-c.dir\objects1.rsp
+C:\mingw64\bin\gcc.exe -g -Wl,--whole-archive CMakeFiles\simple-database-c.dir/objects.a -Wl,--no-whole-archive -o simple-database-c.exe -Wl,--out-implib,libsimple-database-c.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\simple-database-c.dir\linklibs.rsp

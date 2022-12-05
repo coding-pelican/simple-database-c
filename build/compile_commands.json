@@ -1,0 +1,7 @@
+[
+{
+  "directory": "C:/Users/HP/source/cmake-workspace/simple-database-c/build",
+  "command": "C:\\mingw64\\bin\\gcc.exe  @CMakeFiles/simple-database-c.dir/includes_C.rsp -g -o CMakeFiles\\simple-database-c.dir\\main.c.obj -c C:\\Users\\HP\\source\\cmake-workspace\\simple-database-c\\main.c",
+  "file": "C:/Users/HP/source/cmake-workspace/simple-database-c/main.c"
+}
+]
