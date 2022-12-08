@@ -6,7 +6,7 @@
 #define ASSERT(condition, msg)                                   \
     if (!(condition)) {                                          \
         fprintf(stderr, "%s(%s: %d)\n", msg, __FILE__, __LINE__);\
-        __builtin_trap();                                          \
+        __builtin_trap();                                        \
     }                                                            \
 
 #define ALLOC_SIZE 64
