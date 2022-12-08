@@ -9,7 +9,9 @@
         __builtin_trap();                                        \
     }                                                            \
 
-#define ALLOC_SIZE 64
+enum {
+    ALLOC_SIZE = 64
+};
 
 typedef struct {
     char* Buffer;
@@ -28,23 +30,34 @@ InputBuffer* NewInputBuffer() {
 
 void PrintPrompt() { printf("db > "); }
 
-size_t GetLine(char** lineptr, size_t* n, FILE* stream) {
+ssize_t GetLine(char** lineptr, size_t* n, FILE* stream) {
     ASSERT(lineptr != NULL && n != NULL && stream != NULL, "NULLs in parameters are not allowed");
     if (!*lineptr) {
         *lineptr = (char*)malloc(ALLOC_SIZE);
-        if (!*lineptr) return -1;
-        else *n = ALLOC_SIZE;
+        if (!*lineptr) {
+            return -1;
+        } else {
+            *n = ALLOC_SIZE;
+        }
     }
     char* cur = NULL;
     size_t len = 0;
     while (!feof(stream)) {
-        if (!fgets(cur = *lineptr + len, (int)(*n - len), stream)) return -1;
+        cur = *lineptr + len;
+        if (!fgets(cur, (int)(*n - len), stream)) {
+            return -1;
+        }
         len += strlen(cur);
         if ((*lineptr)[len - 1] != '\n') { // 개행 문자 확인
             char* new = (char*)realloc(*lineptr, *n += ALLOC_SIZE);
-            if (!new) return -1;
-            else *lineptr = new;
-        } else return (*lineptr)[--len] = 0, len;
+            if (!new) {
+                return -1;
+            } else {
+                *lineptr = new;
+            }
+        } else {
+            return (*lineptr)[--len] = 0, len;
+        }
     }
     return -1;
 }
