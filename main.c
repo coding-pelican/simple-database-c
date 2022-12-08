@@ -56,7 +56,7 @@ ssize_t GetLine(char** lineptr, size_t* n, FILE* stream) {
                 *lineptr = new;
             }
         } else {
-            return (*lineptr)[--len] = 0, len;
+            return (*lineptr)[--len] = 0, len; // NOLINT
         }
     }
     return -1;
@@ -66,7 +66,7 @@ void ReadLine(InputBuffer* inputBuffer) {
     ssize_t bytesRead = GetLine(&(inputBuffer->Buffer), &(inputBuffer->BufferLength), stdin);
     if (bytesRead <= 0) {
         printf("Error reading input\n");
-        exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE); // NOLINT
     }
     //// Ignore trailing newline
     // inputBuffer->InputLength = bytesRead - 1;
@@ -86,7 +86,7 @@ int main(int argc, char const* argv[]) {
 
         if (strcmp(inputBuffer->Buffer, ".exit") == 0) {
             CloseInputBuffer(inputBuffer);
-            exit(EXIT_SUCCESS);
+            exit(EXIT_SUCCESS); // NOLINT
         } else {
             printf("Unrecognized command '%s'.\n", inputBuffer->Buffer);
         }
