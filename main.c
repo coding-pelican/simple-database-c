@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,6 +10,15 @@
         __builtin_trap();                                        \
     }                                                            \
 
+#define size_of_attribute(Struct, Attribute) sizeof(((Struct*)0)->Attribute)
+
+enum {
+    ALLOC_SIZE = 64,
+    COLUMN_USERNAME_SIZE = 32,
+    COLUMN_EMAIL_SIZE = 255,
+    TABLE_MAX_PAGES = 100
+};
+
 typedef struct {
     char* Buffer;
     size_t BufferLength;
@@ -18,23 +28,68 @@ typedef struct {
 typedef enum {
     META_COMMAND_SUCCESS,
     META_COMMAND_UNRECOGNIZED_COMMAND
-} eMetaCommandResult;
+} EMetaCommandResult;
 
 typedef enum {
     PREPARE_SUCCESS,
     PREPARE_UNRECOGNIZED_STATEMENT
-} ePrepareResult;
+} EPrepareResult;
 
 typedef enum {
     STATEMENT_INSERT,
     STATEMENT_SELECT
-} eStatementType;
+} EStatementType;
 
 typedef struct {
-    eStatementType Type;
+    uint32_t ID;
+    char Username[COLUMN_USERNAME_SIZE];
+    char Email[COLUMN_EMAIL_SIZE];
+} Row;
+
+typedef struct {
+    uint32_t NumRows;
+    void* Pages[TABLE_MAX_PAGES];
+} Table;
+
+typedef struct {
+    EStatementType Type;
+    Row RowToInsert;
 } Statement;
 
-const int ALLOC_SIZE = 64;
+const uint16_t ID_SIZE = size_of_attribute(Row, ID);
+const uint16_t USERNAME_SIZE = size_of_attribute(Row, Username);
+const uint16_t EMAIL_SIZE = size_of_attribute(Row, Email);
+const uint16_t ID_OFFSET = 0;
+const uint16_t USERNAME_OFFSET = ID_OFFSET + ID_SIZE;
+const uint16_t EMAIL_OFFSET = USERNAME_OFFSET + USERNAME_SIZE;
+const uint16_t ROW_SIZE = ID_SIZE + USERNAME_SIZE + EMAIL_SIZE;
+const uint32_t PAGE_SIZE = 4096;
+const uint32_t ROWS_PER_PAGE = PAGE_SIZE / ROW_SIZE;
+const uint32_t TABLE_MAX_ROWS = ROWS_PER_PAGE * TABLE_MAX_PAGES;
+
+void SerializeRow(Row* source, void* destination) {
+    memcpy(destination + ID_OFFSET, &(source->ID), ID_SIZE);
+    memcpy(destination + USERNAME_OFFSET, &(source->Username), USERNAME_SIZE);
+    memcpy(destination + EMAIL_OFFSET, &(source->Email), EMAIL_SIZE);
+}
+
+void DeserializeRow(void* source, Row* destination) {
+    memcpy(&(destination->ID), source + ID_OFFSET, ID_SIZE);
+    memcpy(&(destination->Username), source + USERNAME_OFFSET, USERNAME_SIZE);
+    memcpy(&(destination->Email), source + EMAIL_OFFSET, EMAIL_SIZE);
+}
+
+void* RowSlot(Table* table, uint32_t rowNum) {
+    uint32_t pageNum = rowNum / ROWS_PER_PAGE;
+    void* page = table->Pages[pageNum];
+    if (page == NULL) {
+        // Allocate memory only when we try to access page
+        page = table->Pages[pageNum] = malloc(PAGE_SIZE);
+    }
+    uint32_t rowOffset = rowNum % ROWS_PER_PAGE;
+    uint32_t byteOffset = rowOffset * ROW_SIZE;
+    return page + byteOffset;
+}
 
 InputBuffer* NewInputBuffer() {
     InputBuffer* inputBuffer = (InputBuffer*)malloc(sizeof(InputBuffer));
@@ -95,7 +150,7 @@ void CloseInputBuffer(InputBuffer* inputBuffer) {
     free(inputBuffer);
 }
 
-eMetaCommandResult DoMetaCommand(InputBuffer* inputBuffer) {
+EMetaCommandResult DoMetaCommand(InputBuffer* inputBuffer) {
     if (strcmp(inputBuffer->Buffer, ".exit") == 0) {
         exit(EXIT_SUCCESS); // NOLINT
     } else {
@@ -103,10 +158,17 @@ eMetaCommandResult DoMetaCommand(InputBuffer* inputBuffer) {
     }
 }
 
-ePrepareResult PrepareStatement(InputBuffer* inputBuffer, Statement* statement) {
+EPrepareResult PrepareStatement(InputBuffer* inputBuffer, Statement* statement) {
     if (strncmp(inputBuffer->Buffer, "insert", 6) == 0) { // NOLINT
         statement->Type = STATEMENT_INSERT;
+        int argsAssigned = sscanf(
+            inputBuffer->Buffer, "insert %d %s %s", &(statement->RowToInsert.ID),
+            statement->RowToInsert.Username, statement->RowToInsert.Email);
+        if (argsAssigned < 3) {
+            return PREPARE_SYNTAX_ERROR;
+        }
         return PREPARE_SUCCESS;
+
     }
     if (strcmp(inputBuffer->Buffer, "select") == 0) {
         statement->Type = STATEMENT_SELECT;
@@ -117,6 +179,7 @@ ePrepareResult PrepareStatement(InputBuffer* inputBuffer, Statement* statement) 
 }
 
 void ExecuteStatement(Statement* statement) {
+    // TODO: Implement ExecuteStatement::테이블 구조 읽기/쓰기 
     switch (statement->Type) {
     case (STATEMENT_INSERT):
         printf("This is where we would do an insert.\n");
