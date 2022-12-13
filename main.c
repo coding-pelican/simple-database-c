@@ -48,8 +48,8 @@ typedef enum {
 
 typedef struct {
     uint32_t ID;
-    char Username[COLUMN_USERNAME_SIZE];
-    char Email[COLUMN_EMAIL_SIZE];
+    char Username[COLUMN_USERNAME_SIZE + 1];
+    char Email[COLUMN_EMAIL_SIZE + 1];
 } Row;
 
 typedef struct {
@@ -279,3 +279,5 @@ int main(int argc, char const* argv[]) {
     }
     return 0;
 }
+
+// Test Case : 40422, 김광호, unieye07@gmail.com
