@@ -75,5 +75,9 @@
   "cmake.configureOnOpen": true,
   "cSpell.words": [
     "lineptr"
+  ],
+  "C_Cpp.codeAnalysis.clangTidy.checks.disabled": [
+    "cppcoreguidelines-avoid-magic-numbers",
+    "clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling"
   ]
 }

@@ -26,12 +26,18 @@ typedef struct {
 } InputBuffer;
 
 typedef enum {
+    EXECUTE_SUCCESS,
+    EXECUTE_TABLE_FULL
+} EExecuteResult;
+
+typedef enum {
     META_COMMAND_SUCCESS,
     META_COMMAND_UNRECOGNIZED_COMMAND
 } EMetaCommandResult;
 
 typedef enum {
     PREPARE_SUCCESS,
+    PREPARE_SYNTAX_ERROR,
     PREPARE_UNRECOGNIZED_STATEMENT
 } EPrepareResult;
 
@@ -45,11 +51,6 @@ typedef struct {
     char Username[COLUMN_USERNAME_SIZE];
     char Email[COLUMN_EMAIL_SIZE];
 } Row;
-
-typedef struct {
-    uint32_t NumRows;
-    void* Pages[TABLE_MAX_PAGES];
-} Table;
 
 typedef struct {
     EStatementType Type;
@@ -66,6 +67,15 @@ const uint16_t ROW_SIZE = ID_SIZE + USERNAME_SIZE + EMAIL_SIZE;
 const uint32_t PAGE_SIZE = 4096;
 const uint32_t ROWS_PER_PAGE = PAGE_SIZE / ROW_SIZE;
 const uint32_t TABLE_MAX_ROWS = ROWS_PER_PAGE * TABLE_MAX_PAGES;
+
+typedef struct {
+    uint32_t NumRows;
+    void* Pages[TABLE_MAX_PAGES];
+} Table;
+
+void PrintRow(Row* row) {
+    printf("%d, %s, %s\n", row->ID, row->Username, row->Email);
+}
 
 void SerializeRow(Row* source, void* destination) {
     memcpy(destination + ID_OFFSET, &(source->ID), ID_SIZE);
@@ -89,6 +99,22 @@ void* RowSlot(Table* table, uint32_t rowNum) {
     uint32_t rowOffset = rowNum % ROWS_PER_PAGE;
     uint32_t byteOffset = rowOffset * ROW_SIZE;
     return page + byteOffset;
+}
+
+Table* NewTable() {
+    Table* table = (Table*)malloc(sizeof(Table));
+    table->NumRows = 0;
+    for (uint32_t i = 0; i < TABLE_MAX_PAGES; i++) {
+        table->Pages[i] = NULL;
+    }
+    return table;
+}
+
+void FreeTable(Table* table) {
+    for (int i = 0; table->Pages[i]; i++) {
+        free(table->Pages[i]);
+    }
+    free(table);
 }
 
 InputBuffer* NewInputBuffer() {
@@ -150,8 +176,10 @@ void CloseInputBuffer(InputBuffer* inputBuffer) {
     free(inputBuffer);
 }
 
-EMetaCommandResult DoMetaCommand(InputBuffer* inputBuffer) {
+EMetaCommandResult DoMetaCommand(InputBuffer* inputBuffer, Table* table) {
     if (strcmp(inputBuffer->Buffer, ".exit") == 0) {
+        CloseInputBuffer(inputBuffer);
+        FreeTable(table);
         exit(EXIT_SUCCESS); // NOLINT
     } else {
         return META_COMMAND_UNRECOGNIZED_COMMAND;
@@ -178,30 +206,52 @@ EPrepareResult PrepareStatement(InputBuffer* inputBuffer, Statement* statement) 
     return PREPARE_UNRECOGNIZED_STATEMENT;
 }
 
-void ExecuteStatement(Statement* statement) {
-    // TODO: Implement ExecuteStatement::테이블 구조 읽기/쓰기 
+EExecuteResult ExecuteInsert(Statement* statement, Table* table) {
+    if (table->NumRows >= TABLE_MAX_ROWS) {
+        return  EXECUTE_TABLE_FULL;
+    }
+
+    Row* rowToInsert = &(statement->RowToInsert);
+
+    SerializeRow(rowToInsert, RowSlot(table, table->NumRows));
+    table->NumRows += 1;
+
+    return EXECUTE_SUCCESS;
+}
+
+EExecuteResult ExecuteSelect(Statement* statement, Table* table) {
+    Row row;
+    for (uint32_t i = 0; i < table->NumRows; i++) {
+        DeserializeRow(RowSlot(table, i), &row);
+        PrintRow(&row);
+    }
+    return EXECUTE_SUCCESS;
+}
+
+EExecuteResult ExecuteStatement(Statement* statement, Table* table) {
     switch (statement->Type) {
     case (STATEMENT_INSERT):
-        printf("This is where we would do an insert.\n");
-        break;
+        // printf("This is where we would do an insert.\n");
+        return ExecuteInsert(statement, table);
     case (STATEMENT_SELECT):
-        printf("This is where we would do a select.\n");
-        break;
+        // printf("This is where we would do a select.\n");
+        return ExecuteSelect(statement, table);
     }
 }
 
 int main(int argc, char const* argv[]) {
+    Table* table = NewTable();
     InputBuffer* inputBuffer = NewInputBuffer();
     while (true) {
         PrintPrompt();
         ReadLine(inputBuffer);
 
         if (inputBuffer->Buffer[0] == '.') {
-            switch (DoMetaCommand(inputBuffer)) {
+            switch (DoMetaCommand(inputBuffer, table)) {
             case (META_COMMAND_SUCCESS):
                 continue;
             case (META_COMMAND_UNRECOGNIZED_COMMAND):
-                printf("Unrecognized command '%s'\n", inputBuffer->Buffer);
+                printf("Unrecognized command '%s'.\n", inputBuffer->Buffer);
                 continue;
             }
         }
@@ -210,13 +260,22 @@ int main(int argc, char const* argv[]) {
         switch (PrepareStatement(inputBuffer, &statement)) {
         case (PREPARE_SUCCESS):
             break;
+        case (PREPARE_SYNTAX_ERROR):
+            printf("Syntax error. Could not parse statement.\n");
+            continue;
         case (PREPARE_UNRECOGNIZED_STATEMENT):
-            printf("Unrecognized command '%s'\n", inputBuffer->Buffer);
+            printf("Unrecognized keyword at start of '%s'.\n", inputBuffer->Buffer);
             continue;
         }
 
-        ExecuteStatement(&statement);
-        printf("Executed.\n");
+        switch (ExecuteStatement(&statement, table)) {
+        case (EXECUTE_SUCCESS):
+            printf("Executed.\n");
+            break;
+        case (EXECUTE_TABLE_FULL):
+            printf("Error: Table full.\n");
+            break;
+        }
     }
     return 0;
 }
