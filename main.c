@@ -210,12 +210,9 @@ EExecuteResult ExecuteInsert(Statement* statement, Table* table) {
     if (table->NumRows >= TABLE_MAX_ROWS) {
         return  EXECUTE_TABLE_FULL;
     }
-
     Row* rowToInsert = &(statement->RowToInsert);
-
     SerializeRow(rowToInsert, RowSlot(table, table->NumRows));
     table->NumRows += 1;
-
     return EXECUTE_SUCCESS;
 }
 

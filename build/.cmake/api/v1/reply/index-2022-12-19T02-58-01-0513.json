@@ -11,15 +11,15 @@
 			"cmake" : "C:/Program Files/CMake/bin/cmake.exe",
 			"cpack" : "C:/Program Files/CMake/bin/cpack.exe",
 			"ctest" : "C:/Program Files/CMake/bin/ctest.exe",
-			"root" : "C:/Program Files/CMake/share/cmake-3.24"
+			"root" : "C:/Program Files/CMake/share/cmake-3.25"
 		},
 		"version" : 
 		{
 			"isDirty" : false,
 			"major" : 3,
-			"minor" : 24,
-			"patch" : 2,
-			"string" : "3.24.2",
+			"minor" : 25,
+			"patch" : 1,
+			"string" : "3.25.1",
 			"suffix" : ""
 		}
 	},
@@ -35,7 +35,7 @@
 			}
 		},
 		{
-			"jsonFile" : "cache-v2-297161901566e41da2d8.json",
+			"jsonFile" : "cache-v2-2d70da30e3c87a9ef939.json",
 			"kind" : "cache",
 			"version" : 
 			{
@@ -44,7 +44,7 @@
 			}
 		},
 		{
-			"jsonFile" : "cmakeFiles-v1-4a038252f0665e43e9ee.json",
+			"jsonFile" : "cmakeFiles-v1-d54de7f2527feec399a4.json",
 			"kind" : "cmakeFiles",
 			"version" : 
 			{
@@ -53,7 +53,7 @@
 			}
 		},
 		{
-			"jsonFile" : "toolchains-v1-14b2311713c51a69e1b9.json",
+			"jsonFile" : "toolchains-v1-8bbba33f9a9b94aa87fb.json",
 			"kind" : "toolchains",
 			"version" : 
 			{
@@ -90,7 +90,7 @@
 				"responses" : 
 				[
 					{
-						"jsonFile" : "cache-v2-297161901566e41da2d8.json",
+						"jsonFile" : "cache-v2-2d70da30e3c87a9ef939.json",
 						"kind" : "cache",
 						"version" : 
 						{
@@ -108,7 +108,7 @@
 						}
 					},
 					{
-						"jsonFile" : "toolchains-v1-14b2311713c51a69e1b9.json",
+						"jsonFile" : "toolchains-v1-8bbba33f9a9b94aa87fb.json",
 						"kind" : "toolchains",
 						"version" : 
 						{
@@ -117,7 +117,7 @@
 						}
 					},
 					{
-						"jsonFile" : "cmakeFiles-v1-4a038252f0665e43e9ee.json",
+						"jsonFile" : "cmakeFiles-v1-d54de7f2527feec399a4.json",
 						"kind" : "cmakeFiles",
 						"version" : 
 						{
