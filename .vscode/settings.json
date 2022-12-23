@@ -77,12 +77,13 @@
     "lineptr"
   ],
   "C_Cpp.codeAnalysis.clangTidy.checks.disabled": [
+    "clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling",
+    "clang-analyzer-security.insecureAPI.strcpy",
     "cppcoreguidelines-avoid-*",
     "cppcoreguidelines-pro-bounds-array-to-pointer-decay",
     "cppcoreguidelines-pro-type-vararg",
     "readability-braces-around-statements",
     "readability-convert-member-functions-to-static",
     "readability-implicit-bool-conversion",
-    "clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling"
   ]
 }

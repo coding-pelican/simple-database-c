@@ -37,6 +37,8 @@ typedef enum {
 
 typedef enum {
     PREPARE_SUCCESS,
+    PREPARE_NEGATIVE_ID,
+    PREPARE_STRING_TOO_LONG,
     PREPARE_SYNTAX_ERROR,
     PREPARE_UNRECOGNIZED_STATEMENT
 } EPrepareResult;
@@ -186,17 +188,40 @@ EMetaCommandResult DoMetaCommand(InputBuffer* inputBuffer, Table* table) {
     }
 }
 
+EPrepareResult PrepareInsert(InputBuffer* inputBuffer, Statement* statement) {
+    statement->Type = STATEMENT_INSERT;
+
+    char* keyword = strtok(inputBuffer->Buffer, " ");
+    char* identifierString = strtok(NULL, " ");
+    char* username = strtok(NULL, " ");
+    char* email = strtok(NULL, " ");
+
+    if (identifierString == NULL || username == NULL || email == NULL) {
+        return PREPARE_SYNTAX_ERROR;
+    }
+
+    int identifier = atoi(identifierString);
+
+    if (identifier < 0) {
+        return PREPARE_NEGATIVE_ID;
+    }
+    if (strlen(username) > COLUMN_USERNAME_SIZE) {
+        return  PREPARE_STRING_TOO_LONG;
+    }
+    if (strlen(email) > COLUMN_EMAIL_SIZE) {
+        return PREPARE_STRING_TOO_LONG;
+    }
+
+    statement->RowToInsert.ID = identifier;
+    strcpy(statement->RowToInsert.Username, username);
+    strcpy(statement->RowToInsert.Email, email);
+
+    return PREPARE_SUCCESS;
+}
+
 EPrepareResult PrepareStatement(InputBuffer* inputBuffer, Statement* statement) {
     if (strncmp(inputBuffer->Buffer, "insert", 6) == 0) { // NOLINT
-        statement->Type = STATEMENT_INSERT;
-        int argsAssigned = sscanf(
-            inputBuffer->Buffer, "insert %d %s %s", &(statement->RowToInsert.ID),
-            statement->RowToInsert.Username, statement->RowToInsert.Email);
-        if (argsAssigned < 3) {
-            return PREPARE_SYNTAX_ERROR;
-        }
-        return PREPARE_SUCCESS;
-
+        return PrepareInsert(inputBuffer, statement);
     }
     if (strcmp(inputBuffer->Buffer, "select") == 0) {
         statement->Type = STATEMENT_SELECT;
@@ -257,6 +282,12 @@ int main(int argc, char const* argv[]) {
         switch (PrepareStatement(inputBuffer, &statement)) {
         case (PREPARE_SUCCESS):
             break;
+        case (PREPARE_NEGATIVE_ID):
+            printf("ID must be positive.\n");
+            continue;
+        case (PREPARE_STRING_TOO_LONG):
+            printf("String is too long.\n");
+            continue;
         case (PREPARE_SYNTAX_ERROR):
             printf("Syntax error. Could not parse statement.\n");
             continue;
