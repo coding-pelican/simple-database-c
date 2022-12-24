@@ -16,10 +16,6 @@
         {
             "name": "Win32",
             "includePath": [
-                "C:/mingw64/include",
-                "C:/mingw64/lib/gcc/x86_64-w64-mingw32/12.2.0/include",
-                "C:/mingw64/lib/gcc/x86_64-w64-mingw32/12.2.0/include-fixed",
-                "C:/mingw64/x86_64-w64-mingw32/include",
                 "${workspaceFolder}/**"
             ],
             "defines": [
@@ -34,6 +30,9 @@
             "intelliSenseMode": "windows-gcc-x64",
             "configurationProvider": "ms-vscode.cmake-tools",
             "browse": {
+                "path": [
+                    "${workspaceFolder}"
+                ],
                 "limitSymbolsToIncludedHeaders": true
             }
         }

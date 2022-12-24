@@ -85,5 +85,6 @@
     "readability-braces-around-statements",
     "readability-convert-member-functions-to-static",
     "readability-implicit-bool-conversion",
+    "cppcoreguidelines-narrowing-conversions"
   ]
 }
